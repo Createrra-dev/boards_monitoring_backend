@@ -1,0 +1,82 @@
+services:
+  monitoring_db:
+    image: postgres:17
+    container_name: 'monitoring_db'
+    env_file:
+      - .envs/.postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: always
+  
+  monitoring_redis:
+    image: redis:6.0.1-alpine
+    container_name: 'monitoring_redis'
+    env_file:
+      - .envs/.app
+    volumes:
+      - redis_data:/data
+    command: >
+      --maxclients 20000 --timeout 300 --appendonly yes --replica-read-only no
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: always
+  
+  monitoring_backend:
+    container_name: 'monitoring_backend'
+    build:
+      context: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    env_file:
+      - .envs/.app
+      - .envs/.postgres
+    command: sh -c "alembic upgrade head && cd app && gunicorn main:app --workers 4 --forwarded-allow-ips='*' --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --access-logfile - --error-logfile - --log-level info"
+    depends_on:
+      monitoring_redis:
+        condition: service_healthy
+      monitoring_db:
+        condition: service_healthy
+
+  monitoring_celery_worker:
+    container_name: 'monitoring_celery_worker'
+    build:
+      context: .
+    env_file:
+      - .envs/.app
+      - .envs/.postgres
+    command: "celery --app=app.configs.celery_config:celery_app worker -l INFO"
+    depends_on:
+      monitoring_redis:
+        condition: service_healthy
+      monitoring_backend:
+        condition: service_started
+      monitoring_db:
+        condition: service_healthy
+
+  monitoring_celery_beat:
+    container_name: 'monitoring_celery_beat'
+    build:
+      context: .
+    env_file:
+      - .envs/.app
+      - .envs/.postgres
+    command: "celery --app=app.configs.celery_config:celery_app beat -l INFO"
+    depends_on:
+      monitoring_redis:
+        condition: service_healthy
+      monitoring_backend:
+        condition: service_started
+      monitoring_db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redis_data:

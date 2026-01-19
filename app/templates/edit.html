@@ -1,0 +1,89 @@
+{% extends "layout.html" %}
+{% from 'sqladmin/_macros.html' import render_form_fields %}
+{% block content %}
+<div class="col-12">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Редактировать {{ model_view.name }}</h3>
+    </div>
+    <div class="card-body border-bottom py-3">
+      <form action="{{ model_view._build_url_for('admin:edit', request, obj) }}" method="POST"
+      enctype="multipart/form-data">
+        <div class="row">
+          {% if error %}
+          <div class="alert alert-danger" role="alert">{{ error }}</div>
+          {% endif %}
+        </div>
+        <fieldset class="form-fieldset">
+          {{ render_form_fields(form, form_opts=form_opts) }}
+        </fieldset>
+        <div class="row">
+          <div class="col-md-2">
+            <a href="{{ url_for('admin:list', identity=model_view.identity) }}" class="btn">
+              Отменить
+            </a>
+          </div>
+          <div class="col-md-6">
+            <div class="btn-group flex-wrap" data-toggle="buttons">
+              <input type="submit" name="save" value="Сохранить" class="btn">
+              <input type="submit" name="save" value="Сохранить и продолжить редактирование" class="btn">
+              {% if model_view.can_create %}
+              {% if model_view.save_as %}
+              <input type="submit" name="save" value="Сохранить как новый объект" class="btn">
+              {% else %}
+              <input type="submit" name="save" value="Сохранить и добавить другой объект" class="btn">
+              {% endif %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block tail %}
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/jodit/4.2.47/es2021/jodit.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jodit/4.2.47/es2021/jodit.min.js"></script>
+<script>
+  $(document).ready(function() {
+      $('#documents').select2();
+  });
+  $(document).ready(function() {
+    $('#phones').select2();
+  });
+  $(document).ready(function() {
+    $('#sport_objects').select2();
+  });
+  $(document).ready(function() {
+    $('#photos').select2();
+  });
+</script>
+<script>
+  const editor = Jodit.make('#description', {
+    buttons: [
+      'paragraph',
+      'bold',
+      'italic',
+      'underline',
+      '|',
+      'ul',
+      'ol',
+      'align',
+      'indent',
+      'outdent',
+      '|',
+      'table',
+      'link',
+      '|',
+      'fullsize'
+    ],
+    placeholder: ""
+  });
+</script>
+{% endblock %}

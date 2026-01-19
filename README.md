@@ -1,0 +1,38 @@
+### .envs/.app
+```
+THRESHOLD_SEC=120
+ALLOWED_HOSTS_STRING=*
+ORIGINS_STRING=*
+SESSION_SECRET_KEY=187193719073910714072
+PRODUCTION_URL=http://localhost:8000
+JWT_SECRET_KEY=d4d45067b092ce26ab4c3955566c48040b2f5ca719588ac54effba59773ba1c8
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=10
+JWT_REFRESH_TOKEN_EXPIRE_DAYS=30
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_ADMIN_EXPIRE_DAYS=1
+BOT_TOKEN=8504887694:AAGREcWy7e-aFiePU1WCwN9DI3qi2VYh2DE
+GROUP_CHART_ID=-5163201779
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+UDP_HOST="5.35.31.101"
+UDP_PORT=9999
+SERVER_NAME="stoloto"
+```
+### .envs/.postgres
+```
+POSTGRES_DB=boards_monitoring
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=12345678
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+```
+### Создание администратора
+```
+python app/commands/create_admin.py
+```
+### Наполнение базы данных
+```
+python app/commands/fill_organizations.py
+python app/commands/fill_boards.py
+```

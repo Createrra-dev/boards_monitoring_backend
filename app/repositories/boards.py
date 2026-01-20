@@ -38,7 +38,7 @@ class BoardRepository(BaseRepository):
                     (latest_status_cte.c.id.is_(None), "OFFLINE"),
                     (
                         (latest_status_cte.c.event == EventType.LWT) &
-                        (latest_status_cte.c.status == StatusType.OFFLINE),
+                        (latest_status_cte.c.created_at < offline_threshold),
                         "OFFLINE"
                     ),
                     (
@@ -81,7 +81,7 @@ class BoardRepository(BaseRepository):
                 case(
                     (
                         (latest_status_cte.c.event == EventType.LWT) &
-                        (latest_status_cte.c.status == StatusType.OFFLINE),
+                        (latest_status_cte.c.created_at < offline_threshold),
                         "OFFLINE"
                     ),
                     (

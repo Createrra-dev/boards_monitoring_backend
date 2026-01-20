@@ -6,22 +6,22 @@ from app.schemes.boards_state_history import BoardStateHistoryAddRequestDTO, Boa
 from app.services.boards_state_history import BoardStateHistoryService
 
 
-router = APIRouter(prefix="/boards/{boards_slug}/history", tags=["История состояний плат"])
+router = APIRouter(prefix="/organizations/{organization_slug}/boards/{boards_slug}/history", tags=["История состояний плат"])
 
 
 @router.get("/")
-async def get_state_history(boards_slug: str, db: DBDep) -> list[BoardStateHistoryDTO]:
+async def get_state_history(organization_slug: str, boards_slug: str, db: DBDep) -> list[BoardStateHistoryDTO]:
     """Получение истории состояний платы"""
     try:
-        return await BoardStateHistoryService(db).get_all(boards_slug)
+        return await BoardStateHistoryService(db).get_all(organization_slug, boards_slug)
     except ObjectNotFoundException:
         return []
 
 
 @router.post("/")
-async def create_state_history(boards_slug: str, db: DBDep, state_history: BoardStateHistoryAddRequestDTO) -> BoardStateHistoryDTO:
+async def create_state_history(organization_slug: str, boards_slug: str, db: DBDep, state_history: BoardStateHistoryAddRequestDTO) -> BoardStateHistoryDTO:
     """Добавление состояния платы"""
     try:
-        return await BoardStateHistoryService(db).add(boards_slug, state_history)
+        return await BoardStateHistoryService(db).add(organization_slug, boards_slug, state_history)
     except ObjectNotFoundException:
-        raise HTTPException(status_code=404, detail="Плата не найдена")
+        raise HTTPException(status_code=404, detail="Организация не найдена")

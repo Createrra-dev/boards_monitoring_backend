@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 
 from sqlalchemy import case, select
-from app.mappers.boards import BoardDataMapper, BoardWithStatusDataMapper
+from app.mappers.boards import BoardDataMapper
 from app.models.boards import Board
-from app.models.boards_state_history import BoardStateHistory, EventType, StatusType
+from app.models.boards_state_history import EventType, StatusType
 from app.models.organizations import Organization
 from app.repositories.base import BaseRepository
 from app.configs.base_config import app_settings
@@ -38,11 +38,17 @@ class BoardRepository(BaseRepository):
                     (latest_status_cte.c.id.is_(None), "OFFLINE"),
                     (
                         (latest_status_cte.c.event == EventType.LWT) &
-                        (latest_status_cte.c.created_at < offline_threshold),
+                        (latest_status_cte.c.status == StatusType.OFFLINE) &
                         "OFFLINE"
                     ),
                     (
                         (latest_status_cte.c.event == EventType.STATE) &
+                        (latest_status_cte.c.created_at < offline_threshold),
+                        "OFFLINE"
+                    ),
+                    (
+                        (latest_status_cte.c.event == EventType.LWT) &
+                        (latest_status_cte.c.status == StatusType.ONLINE) &
                         (latest_status_cte.c.created_at < offline_threshold),
                         "OFFLINE"
                     ),

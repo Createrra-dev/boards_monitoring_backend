@@ -17,7 +17,10 @@ class BoardService(BaseService):
             prev_status_bytes = await redis_manager.get(redis_key)
             prev_status = StatusType(prev_status_bytes.decode()) if prev_status_bytes else None
             await redis_manager.set(redis_key, board.status.value)
+            print(f"{board.name}: prev - {prev_status}, curr - {board.status}")
             if board.status == StatusType.OFFLINE and prev_status == StatusType.ONLINE:
                 await send_telegram_message(f"⚠️ Плата {board.name} вышла из строя")
+                print(f"⚠️ Плата {board.name} вышла из строя")
             elif board.status == StatusType.ONLINE and prev_status == StatusType.OFFLINE:
                 await send_telegram_message(f"✅ Плата {board.name} снова онлайн")
+                print(f"✅ Плата {board.name} снова онлайн")

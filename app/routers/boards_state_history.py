@@ -1,3 +1,4 @@
+from datetime import date
 from fastapi import APIRouter, HTTPException
 
 from app.dependiences import DBDep
@@ -10,10 +11,18 @@ router = APIRouter(prefix="/organizations/{organization_slug}/boards/{boards_slu
 
 
 @router.get("/")
-async def get_state_history(organization_slug: str, boards_slug: str, db: DBDep) -> list[BoardStateHistoryDTO]:
+async def get_state_history(
+    organization_slug: str, 
+    boards_slug: str, 
+    db: DBDep,
+    date_from: date,
+    date_to: date
+) -> list[BoardStateHistoryDTO]:
     """Получение истории состояний платы"""
     try:
-        return await BoardStateHistoryService(db).get_all(organization_slug, boards_slug)
+        return await BoardStateHistoryService(db).get_all(
+            organization_slug, boards_slug, date_from, date_to
+        )
     except ObjectNotFoundException:
         return []
 

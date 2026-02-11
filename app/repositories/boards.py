@@ -7,7 +7,7 @@ from app.models.boards_state_history import EventType, StatusType
 from app.models.organizations import Organization
 from app.repositories.base import BaseRepository
 from app.configs.base_config import app_settings
-from app.repositories.utils import get_latest_status
+from app.repositories.utils import get_latest_state_event, get_latest_status
 from app.schemes.boards import BoardWithStatusDTO
 
 
@@ -77,7 +77,7 @@ class BoardRepository(BaseRepository):
         
     async def get_all_with_status_inner_join(self) -> list[BoardWithStatusDTO]:
         offline_threshold = datetime.now() - timedelta(seconds=app_settings.THRESHOLD_SEC)
-        latest_status_cte = get_latest_status()
+        latest_status_cte = get_latest_state_event()
 
         stmt = (
             select(
@@ -86,13 +86,7 @@ class BoardRepository(BaseRepository):
                 Board.slug,
                 case(
                     (
-                        (latest_status_cte.c.event == EventType.LWT) &
-                        (latest_status_cte.c.created_at < offline_threshold),
-                        "OFFLINE"
-                    ),
-                    (
-                        (latest_status_cte.c.event == EventType.STATE) &
-                        (latest_status_cte.c.created_at < offline_threshold),
+                        latest_status_cte.c.created_at < offline_threshold,
                         "OFFLINE"
                     ),
                     else_="ONLINE"
@@ -118,4 +112,3 @@ class BoardRepository(BaseRepository):
             )
             for row in rows
         ]
-
